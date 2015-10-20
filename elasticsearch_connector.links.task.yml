@@ -1,4 +1,15 @@
-elasticsearch.canonical:
+entity.elasticsearch_cluster.canonical:
   route_name: entity.elasticsearch_cluster.canonical
   base_route: entity.elasticsearch_cluster.canonical
   title: 'View'
+  weight: 10
+entity.elasticsearch_cluster.edit_form:
+  route_name: entity.elasticsearch_cluster.edit_form
+  base_route: entity.elasticsearch_cluster.canonical
+  title: 'Edit'
+  weight: 20
+entity.elasticsearch_cluster.delete_form:
+  route_name: entity.elasticsearch_cluster.delete_form
+  base_route: entity.elasticsearch_cluster.canonical
+  title: 'Delete'
+  weight: 30
