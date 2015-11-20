@@ -63,7 +63,7 @@ class ElasticsearchController extends ControllerBase {
    * @throws \Exception
    */
   public function getInfo(Cluster $elasticsearch_cluster) {
-    $cluster_status = Cluster::getClusterInfo($elasticsearch_cluster);
+    $cluster_status = $elasticsearch_cluster->getClusterInfo($elasticsearch_cluster);
     $cluster_client = $cluster_status['client'];
 
     $node_rows = $cluster_statistics_rows = $cluster_health_rows = array();
@@ -118,7 +118,6 @@ class ElasticsearchController extends ControllerBase {
         $cluster_health_rows[] = $row;
       }
     }
-
 
     $output['cluster_statistics_wrapper'] = array(
       '#type' => 'fieldset',
