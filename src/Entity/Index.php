@@ -33,19 +33,19 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  *     "server" = "server"
  *   },
  *   links = {
- *     "canonical" = "/admin/config/elasticsearch-connector/clusters",
- *     "add-form" = "/admin/config/elasticsearch-connector/indices/add",
- *     "delete-form" = "/admin/config/elasticsearch-connector/indices/{elasticsearch_index}/delete",
+ *     "canonical" = "/admin/config/search/elasticsearch-connector/clusters",
+ *     "add-form" = "/admin/config/search/elasticsearch-connector/indices/add",
+ *     "delete-form" = "/admin/config/search/elasticsearch-connector/indices/{elasticsearch_index}/delete",
  *   }
  * )
  */
 class Index extends ConfigEntityBase {
 
   /**
-  * The index machine name.
-  *
-  * @var string
-  */
+   * The index machine name.
+   *
+   * @var string
+   */
   public $index_id;
 
   /**
@@ -80,9 +80,10 @@ class Index extends ConfigEntityBase {
   }
 
   /**
-   * Load an index object
+   * Loads index object.
    *
    * @param $index_id
+   *
    * @return \Drupal\elasticsearch_connector\Entity\Index
    */
   public static function loadIndex($index_id) {
@@ -90,7 +91,7 @@ class Index extends ConfigEntityBase {
   }
 
   /**
-   * Load all indicess
+   * Load all indices.
    *
    * @return \Drupal\elasticsearch_connector\Entity\Index[]
    */

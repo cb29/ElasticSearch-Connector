@@ -28,7 +28,8 @@ class IndexDeleteForm extends EntityConfirmFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $cluster = Cluster::loadCluster($this->entity->server);
+    $cluster = Cluster::load($this->entity->server);
+    // TODO: Fix this function! We have removed it.
     $client = Cluster::getClientByUrls(array($cluster->url));
     if ($client) {
       try {
@@ -56,4 +57,5 @@ class IndexDeleteForm extends EntityConfirmFormBase {
   public function getCancelUrl() {
     return new Url('elasticsearch_connector.clusters');
   }
+
 }

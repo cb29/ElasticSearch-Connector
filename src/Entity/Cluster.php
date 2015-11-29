@@ -35,29 +35,28 @@ use Drupal\Core\Entity\Entity;
  *     "status" = "status"
  *   },
  *   links = {
- *     "canonical" = "/admin/config/elasticsearch-connector/clusters/{elasticsearch_cluster}",
- *     "add-form" = "/admin/config/elasticsearch-connector/clusters/add",
- *     "edit-form" = "/admin/config/elasticsearch-connector/clusters/{elasticsearch_cluster}/edit",
- *     "delete-form" = "/admin/config/elasticsearch-connector/clusters/{elasticsearch_cluster}/delete",
+ *     "canonical" = "/admin/config/search/elasticsearch-connector/clusters/{elasticsearch_cluster}",
+ *     "add-form" = "/admin/config/search/elasticsearch-connector/clusters/add",
+ *     "edit-form" = "/admin/config/search/elasticsearch-connector/clusters/{elasticsearch_cluster}/edit",
+ *     "delete-form" = "/admin/config/search/elasticsearch-connector/clusters/{elasticsearch_cluster}/delete",
  *   }
  * )
  */
 class Cluster extends ConfigEntityBase {
 
   // Active status
-  const ELASTICSEARCH_STATUS_ACTIVE = 1;
+  const ELASTICSEARCH_CONNECTOR_STATUS_ACTIVE = 1;
 
   // Inactive status
-  const ELASTICSEARCH_STATUS_INACTIVE = 0;
+  const ELASTICSEARCH_CONNECTOR_STATUS_INACTIVE = 0;
 
-  // Cluster status
-  const ELASTICSEARCH_CLUSTER_STATUS_OK = 200;
-
+  // Default connection timeout in seconds.
+  const ELASTICSEARCH_CONNECTOR_DEFAULT_TIMEOUT = 3;
   /**
-  * The cluster machine name.
-  *
-  * @var string
-  */
+   * The cluster machine name.
+   *
+   * @var string
+   */
   public $cluster_id;
 
   /**
@@ -83,18 +82,21 @@ class Cluster extends ConfigEntityBase {
 
   /**
    * Options of the cluster.
+   *
    * @var array
    */
   public $options;
 
   /**
    * The locked status of this cluster.
+   *
    * @var bool
    */
   protected $locked = FALSE;
 
   /**
    * The connector class.
+   *
    * @var string
    */
   protected $connector = 'Drupal\elasticsearch_connector\DESConnector\DESConnector';
@@ -134,7 +136,14 @@ class Cluster extends ConfigEntityBase {
    *   The Elasticsearch object.
    */
   public static function getClientInstance($cluster) {
-    $client = call_user_func($cluster->connector . '::getInstance', array($cluster->url));
+    $hosts = array(
+      array(
+        'url' => $cluster->url,
+        'options' => $cluster->options,
+      ),
+    );
+
+    $client = call_user_func($cluster->connector . '::getInstance', $hosts);
     return $client;
   }
 
@@ -145,6 +154,7 @@ class Cluster extends ConfigEntityBase {
    *   Info array.
    *
    * @throws \Exception
+   *   Exception().
    */
   public function getClusterInfo() {
     try {
@@ -162,21 +172,22 @@ class Cluster extends ConfigEntityBase {
    * Return the cluster object based on Cluster ID.
    *
    * @param string $cluster_id
+   *
    * @return \Elasticsearch\Client
    */
   protected function getClientById($cluster_id) {
     $client = NULL;
 
-    $default_cluster = $this::getDefaultCluster();
+    $default_cluster = self::getDefaultCluster();
     if (!isset($cluster_id) && !empty($default_cluster)) {
-      $cluster_id = $this::getDefaultCluster();
+      $cluster_id = $default_cluster;
     }
 
     if (!empty($cluster_id)) {
       $client = FALSE;
-      $cluster = $this::load($cluster_id);
+      $cluster = self::load($cluster_id);
       if ($cluster) {
-        $client = call_user_func($cluster->connector . '::getInstance', array($cluster->url));
+        $client = $this->getClientInstance($cluster);
       }
     }
 
@@ -184,9 +195,10 @@ class Cluster extends ConfigEntityBase {
   }
 
   /**
-   * Load all clusters
+   * Load all clusters.
    *
    * @param bool $include_inactive
+   *
    * @return \Drupal\elasticsearch_connector\Entity\Cluster[]
    */
   public static function loadAllClusters($include_inactive = TRUE) {
@@ -196,30 +208,17 @@ class Cluster extends ConfigEntityBase {
         unset($clusters[$cluster->cluster_id]);
       }
     }
+
     return $clusters;
   }
 
   /**
-   * We need to handle the case where url is and array of urls
+   * Check if the REST response is successful and with status code 200.
    *
-   * @param string $url
-   * @return Client
+   * @param mixed $response
+   *
+   * @return bool
    */
-  public static function getClientByUrls($urls) {
-    $options = array(
-      'hosts' => $urls,
-    );
-
-    \Drupal::moduleHandler()->alter('elasticsearch_connector_load_library_options', $options);
-    return new Client($options);
-  }
-
-/**
- * Check if the REST response is successful and with status code 200.
- * @param array $response
- *
- * @return boolean
- */
   public static function elasticsearchCheckResponseAck($response) {
     if (is_array($response) && !empty($response['acknowledged'])) {
       return TRUE;
@@ -232,16 +231,12 @@ class Cluster extends ConfigEntityBase {
   /**
    * Check if the cluster status is OK.
    *
-   * @param array $status
    * @return bool
    */
-    public static function checkClusterStatus($status) {
-    if (is_array($status) && $status['status'] == ELASTICSEARCH_CLUSTER_STATUS_OK) {
-      return TRUE;
-    }
-    else {
-      return FALSE;
-    }
+  public function checkClusterStatus() {
+    // TODO: Check if we can initialize the client in __construct().
+    $client = self::getClientInstance($this);
+    return $client->clusterIsOk();
   }
 
 }
