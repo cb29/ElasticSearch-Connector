@@ -1507,6 +1507,12 @@ class SearchApiElasticsearchConnector extends SearchApiAbstractService {
           'fields' => $fields
         )
       );
+
+      $keys = $query->getKeys();
+      if (isset($keys['#conjunction']) && $keys['#conjunction'] == 'AND') {
+        $multymatch_query['multi_match']['operator'] = 'AND';
+        $multymatch_query['multi_match']['type'] = 'cross_fields';
+      }
     }
 
     return $multymatch_query;
