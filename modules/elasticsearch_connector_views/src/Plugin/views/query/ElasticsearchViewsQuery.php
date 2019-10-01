@@ -343,7 +343,9 @@ class ElasticsearchViewsQuery extends QueryPluginBase {
       if (count($this->where['conditions']) == 1) {
         $params['query'] = [
           'bool' => [
-            'should' => $this->where['conditions']
+            'should' => [
+              'match' => $this->where['conditions']
+            ]
           ],
         ];
       } else {
